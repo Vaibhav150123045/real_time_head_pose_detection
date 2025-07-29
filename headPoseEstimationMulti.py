@@ -2,15 +2,7 @@ import cv2
 import mediapipe as mp
 import numpy as np
 import time
-
-
-def eye_aspect_ratio(eye_landmarks):
-    A = np.linalg.norm(eye_landmarks[1] - eye_landmarks[5])  # vertical
-    B = np.linalg.norm(eye_landmarks[2] - eye_landmarks[4])  # vertical
-    C = np.linalg.norm(eye_landmarks[0] - eye_landmarks[3])  # horizontal
-
-    return (A + B) / (2.0 * C)
-
+from manualThreading import WebcamStream
 
 mp_face_mesh = mp.solutions.face_mesh
 face_mesh = mp_face_mesh.FaceMesh(
@@ -19,12 +11,12 @@ face_mesh = mp_face_mesh.FaceMesh(
 mp_drawing = mp.solutions.drawing_utils
 drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 
-cap = cv2.VideoCapture(0)
+cap = WebcamStream(0)
+cap.start()
 
-
-while cap.isOpened():
-    success, image = cap.read()
-
+print(cap.stopped)
+while cap.stopped is not True:
+    image = cap.read()
     start = time.time()
 
     # flip the image horizontally for a mirrored view
@@ -46,7 +38,6 @@ while cap.isOpened():
 
     if results.multi_face_landmarks:
         for face_landmarks in results.multi_face_landmarks:
-
             for id, lm in enumerate(face_landmarks.landmark):
                 if id == 33 or id == 263 or id == 61 or id == 291 or id == 1 or id == 199:
                     #  chin landmark (id 1)
@@ -145,4 +136,4 @@ while cap.isOpened():
         if cv2.waitKey(5) & 0xFF == 27:
             break
 
-cap.release()
+cap.stop()

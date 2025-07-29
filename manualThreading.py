@@ -1,3 +1,4 @@
+from threading import Thread
 import cv2
 
 
@@ -15,6 +16,27 @@ class WebcamStream:
             print("[Exiting]: Error reading from webcam stream.")
             exit(0)
 
-        self.stopped = False
+        self.stopped = True
+
+        # Thread instantiation
+        self.t = Thread(target=self.update, args=())
+        self.t.daemon = True
 
     def start(self):
+        self.stopped = False
+        self.t.start()
+
+    def update(self):
+        while not self.stopped:
+            self.grabbed, self.frame = self.cap.read()
+            if not self.grabbed:
+                print("[Exiting]: No more frames to read")
+                break
+        self.cap.release()
+
+    def read(self):
+        return self.frame
+
+    def stop(self):
+        self.stopped = True
+        self.cap.release()
