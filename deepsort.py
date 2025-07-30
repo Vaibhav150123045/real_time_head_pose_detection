@@ -1,3 +1,4 @@
+import threading
 from deep_sort_realtime.deepsort_tracker import DeepSort
 import os
 import cv2
@@ -20,11 +21,16 @@ class YoloDetector:
 
     def load_model(self, model_name):
         if model_name:
-            model = torch.hub.load(
-                'ultralytics/yolov5', 'custom', path=model_name, force_reload=True)
+            # Load custom trained weights
+            model = torch.hub.load('ultralytics/yolov5', 'custom',
+                                   path=model_name,
+                                   force_reload=True)
         else:
+            # Load pretrained YOLOv5 Nano (official smallest model)
             model = torch.hub.load('ultralytics/yolov5',
-                                   'yolov5s', force_reload=True)
+                                   'yolov5n',
+                                   force_reload=True)
+
         return model
 
     def score_frame(self, frame):
@@ -96,6 +102,10 @@ object_tracker = DeepSort(
     polygon=False,
     today=None
 )
+
+# Get number of active threads (excluding main thread)
+active_threads = threading.active_count() - 1  # Subtract main thread
+print(f"Active threads: {active_threads}")
 
 
 while cap.stopped is not True:
